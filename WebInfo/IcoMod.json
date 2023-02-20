@@ -8,17 +8,19 @@
     [
         {
             "name": "city",
-            "type": "string",
+            "type": "text",
             "default": "dresden"
         },
         {
             "name": "privateKey",
-            "type": "string",
+            "type": "text",
             "default": "Get your key from https://openweathermap.org/"
         },
         {
             "name": "refreshTime",
-            "type": "long",
+            "type": "number",
+            "min": 0,
+            "max": 86400000,
             "default": 60000
         }
     ]
