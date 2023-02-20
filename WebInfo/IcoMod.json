@@ -1,0 +1,25 @@
+{
+    "name": "Weather",
+    "version": "1.0.0",
+    "description": "Show the current wheater.",
+    "author": "Till",
+    "license": "MIT",
+    "config": 
+    [
+        {
+            "name": "city",
+            "type": "string",
+            "default": "dresden"
+        },
+        {
+            "name": "privateKey",
+            "type": "string",
+            "default": "Get your key from https://openweathermap.org/"
+        },
+        {
+            "name": "refreshTime",
+            "type": "long",
+            "default": 60000
+        }
+    ]
+}
