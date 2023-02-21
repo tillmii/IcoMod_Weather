@@ -1,5 +1,5 @@
 /*
-  IcoMod_StartScreen.cpp - IcoDesk Module to display the animated Logo.
+  IcoMod_Weather.cpp - IcoDesk Module to display the current weather and the weather forecast.
   Created by Till Michels, February 2, 2023.
 */
 
@@ -19,6 +19,7 @@ class IcoMod_Weather : public IcoMod
     void initialize();
     void refresh();
   private:
+    bool _showCurrentWeather;
     unsigned long _lastRefresh;
     unsigned long _refreshTime;
     const char *_city;
