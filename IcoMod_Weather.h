@@ -8,8 +8,6 @@
 
 #include "Arduino.h"
 #include "IcoMod.h"
-#include <Adafruit_GFX.h>
-#include <Adafruit_ST7735.h>
 
 class IcoMod_Weather : public IcoMod
 {
@@ -20,6 +18,7 @@ class IcoMod_Weather : public IcoMod
     void refresh();
   private:
     bool _showCurrentWeather;
+    String _jsonBuffer;
     unsigned long _lastRefresh;
     unsigned long _refreshTime;
     const char *_city;
