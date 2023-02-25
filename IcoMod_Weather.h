@@ -12,7 +12,7 @@
 class IcoMod_Weather : public IcoMod
 {
   public:
-    IcoMod_Weather(Adafruit_ST7735* tft, const char *city, const char *privateKey, unsigned long refreshTime);
+    IcoMod_Weather(Adafruit_ST7735* tft, unsigned int colors[], JsonObject &config);
     void onClick();
     void initialize();
     void refresh();

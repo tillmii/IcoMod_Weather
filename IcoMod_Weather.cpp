@@ -12,12 +12,14 @@
 #include "TextUtils.h"
 #include "icons.h"
 
-IcoMod_Weather::IcoMod_Weather(Adafruit_ST7735 *tft, const char *city, const char *privateKey, unsigned long refreshTime)
+IcoMod_Weather::IcoMod_Weather(Adafruit_ST7735* tft, unsigned int colors[], JsonObject &config)
 {
   _tft = tft;
-  _city = city;
-  _privateKey = privateKey;
-  _refreshTime = refreshTime;
+  _colors = colors;
+
+  _city = config["city"];
+  _privateKey = config["privateKey"];
+  _refreshTime = config["refreshTime"];
 
   _showCurrentWeather = true;
   _jsonBuffer = "";
@@ -54,69 +56,69 @@ String httpGETRequest(const char *serverName)
   return payload;
 }
 
-void drawCurrentWeather(Adafruit_ST7735* tft, JSONVar* weatherData)
+void drawCurrentWeather(Adafruit_ST7735* tft, unsigned int colors[], JSONVar* weatherData)
 {
-  tft->fillScreen(ST77XX_BLACK);
+  tft->fillScreen(colors[0]);
 
   // Draw icon
   int spacingTop = 10;
   String iconString = (*weatherData)["weather"][0]["icon"];
   if (iconString == "01d")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _01d, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _01d, 64, 64, colors[1]);
   }
   else if (iconString == "01n")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _01n, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _01n, 64, 64, colors[1]);
   }
   else if (iconString == "02d")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _02d, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _02d, 64, 64, colors[1]);
   }
   else if (iconString == "02n")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _02n, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _02n, 64, 64, colors[1]);
   }
   else if (iconString == "03d" || iconString == "03n")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _03dn, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _03dn, 64, 64, colors[1]);
   }
   else if (iconString == "04d" || iconString == "04n")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _04dn, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _04dn, 64, 64, colors[1]);
   }
   else if (iconString == "09d" || iconString == "09n")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _09dn, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _09dn, 64, 64, colors[1]);
   }
   else if (iconString == "10d")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _10d, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _10d, 64, 64, colors[1]);
   }
   else if (iconString == "10n")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _10n, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _10n, 64, 64, colors[1]);
   }
   else if (iconString == "11d" || iconString == "11n")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _11dn, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _11dn, 64, 64, colors[1]);
   }
   else if (iconString == "13d" || iconString == "13n")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _13dn, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _13dn, 64, 64, colors[1]);
   }
   else if (iconString == "50d")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _50d, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _50d, 64, 64, colors[1]);
   }
   else if (iconString == "50n")
   {
-    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _50n, 64, 64, ST7735_WHITE);
+    tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _50n, 64, 64, colors[1]);
   }
 
   // Print temp
   int roundedTemp = (int)round((double)(*weatherData)["main"]["temp"]);
-  TextUtils::printCentered(tft, String(roundedTemp), spacingTop * 2.5 + 64, 3, ST7735_WHITE);
+  TextUtils::printCentered(tft, String(roundedTemp), spacingTop * 2.5 + 64, 3, colors[1]);
 
   // Print degree symbol
   tft->setTextSize(2);
@@ -124,7 +126,7 @@ void drawCurrentWeather(Adafruit_ST7735* tft, JSONVar* weatherData)
   tft->print("o");
 
   // Print description
-  TextUtils::printLinesCentered(tft, (*weatherData)["weather"][0]["description"], 20, 2, tft->height() / 6 * 5, 1, ST7735_WHITE);
+  TextUtils::printLinesCentered(tft, (*weatherData)["weather"][0]["description"], 20, 2, tft->height() / 6 * 5, 1, colors[1]);
 }
 
 String getWeekDay(int day)
@@ -149,9 +151,9 @@ String getWeekDay(int day)
   return "Error: Day must be between 0 and 6...";
 }
 
-void drawWeatherForecast(Adafruit_ST7735* tft, JSONVar *weatherData)
+void drawWeatherForecast(Adafruit_ST7735* tft, unsigned int colors[], JSONVar *weatherData)
 {
-  tft->fillScreen(ST77XX_BLACK);
+  tft->fillScreen(colors[0]);
   tft->setTextSize(2);
 
   int j = 0;
@@ -175,60 +177,60 @@ void drawWeatherForecast(Adafruit_ST7735* tft, JSONVar *weatherData)
       int spacing = 12;
       if (iconString == "01d")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _01d_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _01d_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "01n")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _01n_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _01n_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "02d")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _02d_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _02d_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "02n")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _02n_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _02n_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "03d" || iconString == "03n")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _03dn_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _03dn_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "04d" || iconString == "04n")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _04dn_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _04dn_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "09d" || iconString == "09n")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _09dn_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _09dn_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "10d")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _10d_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _10d_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "10n")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _10n_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _10n_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "11d" || iconString == "11n")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _11dn_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _11dn_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "13d" || iconString == "13n")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _13dn_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _13dn_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "50d")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _50d_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _50d_16x16, 16, 16, colors[1]);
       }
       else if (iconString == "50n")
       {
-        tft->drawXBitmap(tft->getCursorX() + spacing, height, _50n_16x16, 16, 16, ST7735_WHITE);
+        tft->drawXBitmap(tft->getCursorX() + spacing, height, _50n_16x16, 16, 16, colors[1]);
       }
 
       // Print temp
       String temp = String((int)round((double)(*weatherData)["list"][i]["main"]["temp"]));
-      TextUtils::printRightAligned(tft, temp, 10 + 8, height, 2, ST7735_WHITE);
+      TextUtils::printRightAligned(tft, temp, 10 + 8, height, 2, colors[1]);
 
       // Print degree symbol
       tft->setTextSize(1);
@@ -282,6 +284,6 @@ void IcoMod_Weather::refresh()
     // Serial.print("WeatherData: ");
     // Serial.println(weatherData);
 
-    _showCurrentWeather ? drawCurrentWeather(_tft, &weatherData) : drawWeatherForecast(_tft, &weatherData);
+    _showCurrentWeather ? drawCurrentWeather(_tft, _colors, &weatherData) : drawWeatherForecast(_tft, _colors, &weatherData);
   }
 }
