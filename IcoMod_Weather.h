@@ -18,7 +18,7 @@ class IcoMod_Weather : public IcoMod
     void refresh();
   private:
     bool _showCurrentWeather;
-    String _jsonBuffer;
+    StaticJsonDocument<24576> _jsonBuffer;
     unsigned long _lastRefresh;
     unsigned long _refreshTime;
     const char *_city;

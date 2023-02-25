@@ -4,12 +4,13 @@
 */
 
 #include "Arduino.h"
+#include "IcoMod_Weather.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <HTTPClient.h>
-#include "IcoMod_Weather.h"
-#include <Arduino_JSON.h>
+#include <ArduinoJson.h>
 #include "TextUtils.h"
+#include "ApiUtils.h"
 #include "icons.h"
 
 IcoMod_Weather::IcoMod_Weather(Adafruit_ST7735* tft, unsigned int colors[], JsonObject &config)
@@ -22,47 +23,15 @@ IcoMod_Weather::IcoMod_Weather(Adafruit_ST7735* tft, unsigned int colors[], Json
   _refreshTime = config["refreshTime"];
 
   _showCurrentWeather = true;
-  _jsonBuffer = "";
 }
 
-String httpGETRequest(const char *serverName)
-{
-  WiFiClient client;
-  HTTPClient http;
-
-  // Your Domain name with URL path or IP address with path
-  http.begin(client, serverName);
-
-  // Send HTTP POST request
-  int httpResponseCode = http.GET();
-
-  String payload = "{}";
-
-  if (httpResponseCode > 0)
-  {
-    Serial.print("HTTP Response code: ");
-    Serial.println(httpResponseCode);
-    payload = http.getString();
-  }
-  else
-  {
-    Serial.print("Error code: ");
-    Serial.println(httpResponseCode);
-  }
-
-  // Free resources
-  http.end();
-
-  return payload;
-}
-
-void drawCurrentWeather(Adafruit_ST7735* tft, unsigned int colors[], JSONVar* weatherData)
+void drawCurrentWeather(Adafruit_ST7735* tft, unsigned int colors[], JsonObject &weatherData)
 {
   tft->fillScreen(colors[0]);
 
   // Draw icon
   int spacingTop = 10;
-  String iconString = (*weatherData)["weather"][0]["icon"];
+  String iconString = weatherData["weather"][0]["icon"];
   if (iconString == "01d")
   {
     tft->drawXBitmap(tft->width() / 2 - 32, spacingTop, _01d, 64, 64, colors[1]);
@@ -117,7 +86,7 @@ void drawCurrentWeather(Adafruit_ST7735* tft, unsigned int colors[], JSONVar* we
   }
 
   // Print temp
-  int roundedTemp = (int)round((double)(*weatherData)["main"]["temp"]);
+  int roundedTemp = (int)round((double)weatherData["main"]["temp"]);
   TextUtils::printCentered(tft, String(roundedTemp), spacingTop * 2.5 + 64, 3, colors[1]);
 
   // Print degree symbol
@@ -126,7 +95,7 @@ void drawCurrentWeather(Adafruit_ST7735* tft, unsigned int colors[], JSONVar* we
   tft->print("o");
 
   // Print description
-  TextUtils::printLinesCentered(tft, (*weatherData)["weather"][0]["description"], 20, 2, tft->height() / 6 * 5, 1, colors[1]);
+  TextUtils::printLinesCentered(tft, weatherData["weather"][0]["description"], 20, 2, tft->height() / 6 * 5, 1, colors[1]);
 }
 
 String getWeekDay(int day)
@@ -151,15 +120,17 @@ String getWeekDay(int day)
   return "Error: Day must be between 0 and 6...";
 }
 
-void drawWeatherForecast(Adafruit_ST7735* tft, unsigned int colors[], JSONVar *weatherData)
+void drawWeatherForecast(Adafruit_ST7735* tft, unsigned int colors[], JsonObject &weatherData)
 {
   tft->fillScreen(colors[0]);
   tft->setTextSize(2);
 
+  JsonArray forecastsArray = weatherData["list"];
+
   int j = 0;
-  for (int i = 0; i < (*weatherData)["list"].length(); i++)
+  for (int i = 0; i < forecastsArray.size(); i++)
   {
-    long dt = (long)(*weatherData)["list"][i]["dt"];
+    long dt = (long)forecastsArray[i]["dt"];
     if (dt % 43200 == 0 && dt % 86400 != 0) 
     {
       j++;
@@ -173,7 +144,7 @@ void drawWeatherForecast(Adafruit_ST7735* tft, unsigned int colors[], JSONVar *w
       tft->print(getWeekDay((int)(floor(dt / 86400) + 4) % 7));
 
       // Draw icon
-      String iconString = (*weatherData)["list"][i]["weather"][0]["icon"];
+      String iconString = forecastsArray[i]["weather"][0]["icon"];
       int spacing = 12;
       if (iconString == "01d")
       {
@@ -229,7 +200,7 @@ void drawWeatherForecast(Adafruit_ST7735* tft, unsigned int colors[], JSONVar *w
       }
 
       // Print temp
-      String temp = String((int)round((double)(*weatherData)["list"][i]["main"]["temp"]));
+      String temp = String((int)round((double)forecastsArray[i]["main"]["temp"]));
       TextUtils::printRightAligned(tft, temp, 10 + 8, height, 2, colors[1]);
 
       // Print degree symbol
@@ -271,19 +242,16 @@ void IcoMod_Weather::refresh()
     // Serial.print("URL: ");
     // Serial.println(url);
 
-    _jsonBuffer = httpGETRequest(url.c_str());
+    ApiUtils::getJsonFromServer(&_jsonBuffer, url.c_str());
 
-    JSONVar weatherData = JSON.parse(_jsonBuffer);
-
-    if (JSON.typeof(weatherData) == "undefined")
+    if (_jsonBuffer.isNull())
     {
       Serial.println("Parsing weather data failed!");
       return;
     }
 
-    // Serial.print("WeatherData: ");
-    // Serial.println(weatherData);
+    JsonObject weatherData = _jsonBuffer.as<JsonObject>();
 
-    _showCurrentWeather ? drawCurrentWeather(_tft, _colors, &weatherData) : drawWeatherForecast(_tft, _colors, &weatherData);
+    _showCurrentWeather ? drawCurrentWeather(_tft, _colors, weatherData) : drawWeatherForecast(_tft, _colors, weatherData);
   }
 }
